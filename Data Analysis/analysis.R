@@ -20,7 +20,7 @@ average_session1_calibration_data <- read.csv("/Users/vivianross/Documents/Schoo
 #average errors: session 2 recalibrated with calibration task
 average_session2_calibration_data <- read.csv("/Users/vivianross/Documents/School/Research/EyeTracking/HoloLensEyeTracking-DataAnalysis-New/Data/session2_recalibrated_calibration_average_error.csv", header = TRUE, fileEncoding = 'UTF-8-BOM')
 
-#add column to specify movement
+#add column to specify trial
 average_session1_calibration_data <- average_session1_calibration_data %>% add_column(trial = 1)
 average_session2_calibration_data <- average_session2_calibration_data %>% add_column(trial = 2)
 
@@ -38,7 +38,7 @@ average_session2_calibration_data$id = factor(average_session2_calibration_data$
 total_calibration_error = rbind(average_session1_calibration_data, average_session2_calibration_data)
 
 #plot between hololenses
-ggplot(total_calibration_error, aes(x=taskname, y=cosineError, fill=hololens)) + geom_bar(position=position_dodge(), stat = "summary", fun = "mean") + geom_errorbar(position=position_dodge(), stat="summary", fun.data="mean_se", fun.args = list(mult = 1.96)) + scale_x_discrete(name = "", limits=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), breaks=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), labels=c('Calibration', 'Head Constrained', 'Body Constrained', 'Screen Stabilized Walking', 'World Stabilized Walking', 'Hallway')) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + ylab('Cosine Error (degrees)') + scale_fill_discrete(name="HoloLens")
+ggplot(total_calibration_error, aes(x=taskname, y=cosineError, fill=hololens)) + geom_bar(position=position_dodge(), stat = "summary", fun = "mean") + geom_errorbar(position=position_dodge(), stat="summary", fun.data="mean_se", fun.args = list(mult = 1.96)) + scale_x_discrete(name = "", limits=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), breaks=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), labels=c('Head Constrained Static', 'Head Constrained Moving', 'Body Constrained', 'Screen Stabilized Walking', 'World Stabilized Walking', 'Hallway')) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + ylab('Cosine Error (degrees)') + scale_fill_discrete(name="HoloLens")
 
 #Three-way ANOVA: determine that HoloLens doesn't make a difference
 total_calibration_error %>% group_by(taskname, trial, hololens) %>% shapiro_test(cosineError) 
@@ -46,7 +46,10 @@ m_hololens <- art(data = total_calibration_error, cosineError ~ taskname * trial
 anova(m_hololens)
 
 #plot between trials
-ggplot(total_calibration_error, aes(x=taskname, y=cosineError, fill=trial)) + geom_bar(position=position_dodge(), stat = "summary", fun = "mean") + geom_errorbar(position=position_dodge(), stat="summary", fun.data="mean_se", fun.args = list(mult = 1.96)) + scale_x_discrete(name = "", limits=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), breaks=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), labels=c('Calibration', 'Head Constrained', 'Body Constrained', 'Screen Stabilized Walking', 'World Stabilized Walking', 'Hallway')) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + ylab('Cosine Error (degrees)') + scale_fill_discrete(name="", breaks=c("1", "2"), labels=c("Trial 1", "Trial 2"))
+ggplot(total_calibration_error, aes(x=taskname, y=cosineError, fill=trial)) + geom_bar(position=position_dodge(), stat = "summary", fun = "mean") + geom_errorbar(position=position_dodge(), stat="summary", fun.data="mean_se", fun.args = list(mult = 1.96)) + scale_x_discrete(name = "", limits=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), breaks=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), labels=c('Head Constrained Static', 'Head Constrained Moving', 'Body Constrained', 'Screen Stabilized Walking', 'World Stabilized Walking', 'Hallway')) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + ylab('Cosine Error (degrees)') + scale_fill_discrete(name="", breaks=c("1", "2"), labels=c("Trial 1", "Trial 2"))
+
+ggplot(total_calibration_error, aes(x=taskname, y=cosineError)) + geom_bar(position=position_dodge(), stat = "summary", fun = "mean", fill="lightblue") + geom_errorbar(position=position_dodge(), stat="summary", fun.data="mean_se", fun.args = list(mult = 1.96)) + scale_x_discrete(name = "", limits=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), breaks=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), labels=c('Head Constrained Static', 'Head Constrained Moving', 'Body Constrained', 'Screen Stabilized Walking', 'World Stabilized Walking', 'Hallway')) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + ylab('Cosine Error (degrees)') + scale_fill_discrete(name="", breaks=c("1", "2"), labels=c("Trial 1", "Trial 2"))
+
 
 #Three-way ANOVA: determine if trial makes a difference
 total_calibration_error %>% group_by(taskname, trial) %>% shapiro_test(cosineError) #fails test for normality, can't use normal ANOVA
@@ -64,25 +67,36 @@ long_1_calibration_error$ErrorType = factor(long_1_calibration_error$ErrorType)
 long_2_calibration_error$ErrorType = factor(long_2_calibration_error$ErrorType)
 
 #graph calibrated and recalibrated Euclidean error
-ggplot(long_1_calibration_error, aes(x=taskname, y=ErrorValue, fill=ErrorType)) + geom_bar(position=position_dodge(), stat = "summary", fun = "mean") + geom_errorbar(position=position_dodge(), stat="summary", fun.data="mean_se", fun.args = list(mult = 1.96)) + scale_x_discrete(name = "", limits=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), breaks=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), labels=c('Calibration', 'Head Constrained', 'Body Constrained', 'Screen Stabilized Walking', 'World Stabilized Walking', 'Hallway')) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + ylab('Euclidean Error (degrees)') + scale_fill_discrete(name="Error Type", breaks=c('euclideanError', 'recalibratedEuclideanError'), labels=c('Uncalibrated', 'Recalibrated'))
-ggplot(long_2_calibration_error, aes(x=taskname, y=ErrorValue, fill=ErrorType)) + geom_bar(position=position_dodge(), stat = "summary", fun = "mean") + geom_errorbar(position=position_dodge(), stat="summary", fun.data="mean_se", fun.args = list(mult = 1.96)) + scale_x_discrete(name = "", limits=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), breaks=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), labels=c('Calibration', 'Head Constrained', 'Body Constrained', 'Screen Stabilized Walking', 'World Stabilized Walking', 'Hallway')) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + ylab('Euclidean Error (degrees)') + scale_fill_discrete(name="Error Type", breaks=c('euclideanError', 'recalibratedEuclideanError'), labels=c('Uncalibrated', 'Recalibrated'))
+ggplot(long_1_calibration_error, aes(x=taskname, y=ErrorValue, fill=ErrorType)) + geom_bar(position=position_dodge(), stat = "summary", fun = "mean") + geom_errorbar(position=position_dodge(), stat="summary", fun.data="mean_se", fun.args = list(mult = 1.96)) + scale_x_discrete(name = "", limits=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), breaks=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), labels=c('Calibration', 'Head Constrained', 'Body Constrained', 'Screen Stabilized Walking', 'World Stabilized Walking', 'Hallway')) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + ylab('Euclidean Error (degrees)') + scale_fill_discrete(name="Error Type", breaks=c('euclideanError', 'recalibratedEuclideanError'), labels=c('Device Calibration', 'Recalibration'))
+ggplot(long_2_calibration_error, aes(x=taskname, y=ErrorValue, fill=ErrorType)) + geom_bar(position=position_dodge(), stat = "summary", fun = "mean") + geom_errorbar(position=position_dodge(), stat="summary", fun.data="mean_se", fun.args = list(mult = 1.96)) + scale_x_discrete(name = "", limits=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), breaks=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), labels=c('Calibration', 'Head Constrained', 'Body Constrained', 'Screen Stabilized Walking', 'World Stabilized Walking', 'Hallway')) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + ylab('Euclidean Error (degrees)') + scale_fill_discrete(name="Error Type", breaks=c('euclideanError', 'recalibratedEuclideanError'), labels=c('Device Calibration', 'Recalibration'))
+
+total_long_calibration_error = rbind(long_1_calibration_error, long_2_calibration_error)
+ggplot(total_long_calibration_error, aes(x=taskname, y=ErrorValue, fill=ErrorType)) + geom_bar(position=position_dodge(), stat = "summary", fun = "mean") + geom_errorbar(position=position_dodge(), stat="summary", fun.data="mean_se", fun.args = list(mult = 1.96)) + scale_x_discrete(name = "", limits=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), breaks=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), labels=c('Head Constrained Static', 'Head Constrained Moving', 'Body Constrained', 'Screen Stabilized Walking', 'World Stabilized Walking', 'Hallway')) + theme(axis.text.x = element_text(angle = 50, vjust = 1, hjust=1)) + ylab('Euclidean Error (degrees)') + scale_fill_discrete(name="Error Type", breaks=c('euclideanError', 'recalibratedEuclideanError'), labels=c('Device Calibration', 'Recalibration'))
+
 
 #Three-way ART ANOVA: task, calibration, trial
-total_calibration_error = rbind(long_1_calibration_error, long_2_calibration_error)
-total_calibration_error %>% group_by(taskname, trial, ErrorType) %>% shapiro_test(ErrorValue)
-m_calibration <- art(data = total_calibration_error, ErrorValue ~ taskname * trial * ErrorType + Error(id))
+total_long_calibration_error %>% group_by(taskname, trial, ErrorType) %>% shapiro_test(ErrorValue)
+m_calibration <- art(data = total_long_calibration_error, ErrorValue ~ taskname * trial * ErrorType + Error(id))
 anova(m_calibration)
 
-calibration_errorType_posthoc <- total_calibration_error %>% group_by(taskname) %>% rstatix::wilcox_test(ErrorValue ~ ErrorType, paired=FALSE, exact=FALSE, p.adjust.method="bonferroni")
+m_calibration <- art(data = total_long_calibration_error, ErrorValue ~ taskname * ErrorType + Error(id))
+anova(m_calibration)
+
+calibration_errorType_posthoc <- total_long_calibration_error %>% group_by(taskname) %>% rstatix::wilcox_test(ErrorValue ~ ErrorType, paired=FALSE, exact=FALSE, p.adjust.method="bonferroni")
 calibration_errorType_posthoc
 
-calibration_trial_posthoc <- total_calibration_error %>% group_by(taskname, ErrorType) %>% rstatix::wilcox_test(ErrorValue ~ trial, paired=FALSE, exact=FALSE, p.adjust.method="bonferroni")
+calibration_trial_posthoc <- total_long_calibration_error %>% group_by(taskname, ErrorType) %>% rstatix::wilcox_test(ErrorValue ~ trial, paired=FALSE, exact=FALSE, p.adjust.method="bonferroni")
 calibration_trial_posthoc
 
-calibration_errorTypeByTrial_posthoc <- total_calibration_error %>% group_by(taskname, trial) %>% rstatix::wilcox_test(ErrorValue ~ ErrorType, paired=FALSE, exact=FALSE, p.adjust.method="bonferroni")
+calibration_errorTypeByTrial_posthoc <- total_long_calibration_error %>% group_by(taskname, trial) %>% rstatix::wilcox_test(ErrorValue ~ ErrorType, paired=FALSE, exact=FALSE, p.adjust.method="bonferroni")
 calibration_errorTypeByTrial_posthoc
 
-
+#plot total cosine error using Satyam's naming convention
+ggplot(total_calibration_error, aes(x=taskname, y=cosineError)) + geom_bar(position=position_dodge(), stat = "summary", fun = "mean", fill="lightblue") + geom_errorbar(position=position_dodge(), stat="summary", fun.data="mean_se", fun.args = list(mult = 1.96)) + scale_x_discrete(name = "", limits=c('ssHeadConstrained', 'wsBodyConstrained', 'wsWalking', 'ssWalking', 'hallway', 'calibration'), breaks=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), labels=c('Recalibrate', 'w1', 'w2', 's4', 'w3', 'Hallway')) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + ylab('Cosine Error (degrees)') + scale_fill_discrete(name="", breaks=c("1", "2"), labels=c("Trial 1", "Trial 2"))
+#plot total uncalibrated Euclidean error using Satyam's naming convention
+ggplot(total_calibration_error, aes(x=taskname, y=euclideanError)) + geom_bar(position=position_dodge(), stat = "summary", fun = "mean", fill="lightblue") + geom_errorbar(position=position_dodge(), stat="summary", fun.data="mean_se", fun.args = list(mult = 1.96)) + scale_x_discrete(name = "", limits=c('ssHeadConstrained', 'wsBodyConstrained', 'wsWalking', 'ssWalking', 'hallway', 'calibration'), breaks=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), labels=c('Recalibrate', 'w1', 'w2', 's4', 'w3', 'Hallway')) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + ylab('Euclidean Error (degrees)') + scale_fill_discrete(name="", breaks=c("1", "2"), labels=c("Trial 1", "Trial 2"))
+#plot recalibrated error using Satyam's naming convention
+ggplot(total_long_calibration_error, aes(x=taskname, y=ErrorValue, fill=ErrorType)) + geom_bar(position=position_dodge(), stat = "summary", fun = "mean") + geom_errorbar(position=position_dodge(), stat="summary", fun.data="mean_se", fun.args = list(mult = 1.96)) + scale_x_discrete(name = "", limits=c('ssHeadConstrained', 'wsBodyConstrained', 'wsWalking', 'ssWalking', 'hallway', 'calibration'), breaks=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), labels=c('Recalibrate', 'w1', 'w2', 's4', 'w3', 'Hallway')) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + ylab('Euclidean Error (degrees)') + scale_fill_discrete(name="", breaks=c("1", "2"), labels=c("Trial 1", "Trial 2"))
 
 
 #-----------------------------------------------------------------------------------------
@@ -121,11 +135,15 @@ ggplot(long_average_session2_ssHeadConstrained_data, aes(x=taskname, y=ErrorValu
 
 #merge dataframes
 total_ssHeadConstrained_error = rbind(long_average_session1_ssHeadConstrained_data, long_average_session2_ssHeadConstrained_data)
+ggplot(total_ssHeadConstrained_error, aes(x=taskname, y=ErrorValue, fill=ErrorType)) + geom_bar(position=position_dodge(), stat = "summary", fun = "mean") + geom_errorbar(position=position_dodge(), stat="summary", fun.data="mean_se", fun.args = list(mult = 1.96)) + scale_x_discrete(name = "", limits=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), breaks=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), labels=c('Head Constrained Static', 'Head Constrained Moving', 'Body Constrained', 'Screen Stabilized Walking', 'World Stabilized Walking', 'Hallway')) + theme(axis.text.x = element_text(angle = 50, vjust = 1, hjust=1)) + ylab('Euclidean Error (degrees)') + scale_fill_discrete(name="Error Type", breaks=c('euclideanError', 'recalibratedEuclideanError'), labels=c('Device Calibration', 'Recalibration'))
 
 #Three-way ANOVA: task, error type, trial
 total_ssHeadConstrained_error %>% group_by(taskname, trial, ErrorType) %>% shapiro_test(ErrorValue) #fails test for normality, can't use normal ANOVA
 
 m_ssHeadConstrained = art(data = total_ssHeadConstrained_error, ErrorValue ~ taskname * trial * ErrorType + Error(id))
+anova(m_ssHeadConstrained)
+
+m_ssHeadConstrained = art(data = total_ssHeadConstrained_error, ErrorValue ~ taskname * ErrorType + Error(id))
 anova(m_ssHeadConstrained)
 
 ssHeadConstrained_error_posthoc <- total_ssHeadConstrained_error %>% group_by(taskname) %>% rstatix::wilcox_test(ErrorValue ~ ErrorType, paired=FALSE, exact=FALSE, p.adjust.method="bonferroni")
@@ -176,11 +194,15 @@ ggplot(long_average_session2_wsBodyConstrained_data, aes(x=taskname, y=ErrorValu
 
 #merge dataframes
 total_wsBodyConstrained_error = rbind(long_average_session1_wsBodyConstrained_data, long_average_session2_wsBodyConstrained_data)
+ggplot(total_wsBodyConstrained_error, aes(x=taskname, y=ErrorValue, fill=ErrorType)) + geom_bar(position=position_dodge(), stat = "summary", fun = "mean") + geom_errorbar(position=position_dodge(), stat="summary", fun.data="mean_se", fun.args = list(mult = 1.96)) + scale_x_discrete(name = "", limits=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), breaks=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), labels=c('Head Constrained Static', 'Head Constrained Moving', 'Body Constrained', 'Screen Stabilized Walking', 'World Stabilized Walking', 'Hallway')) + theme(axis.text.x = element_text(angle = 50, vjust = 1, hjust=1)) + ylab('Euclidean Error (degrees)') + scale_fill_discrete(name="Error Type", breaks=c('euclideanError', 'recalibratedEuclideanError'), labels=c('Device Calibration', 'Recalibration'))
 
 #Three-way ANOVA: task, error type, trial
 total_wsBodyConstrained_error %>% group_by(taskname, trial, ErrorType) %>% shapiro_test(ErrorValue) #fails test for normality, can't use normal ANOVA
 
 m_wsBodyConstrained = art(data = total_wsBodyConstrained_error, ErrorValue ~ taskname * trial * ErrorType + Error(id))
+anova(m_wsBodyConstrained)
+
+m_wsBodyConstrained = art(data = total_wsBodyConstrained_error, ErrorValue ~ taskname * ErrorType + Error(id))
 anova(m_wsBodyConstrained)
 
 wsBodyConstrained_error_posthoc <- total_wsBodyConstrained_error %>% group_by(taskname) %>% rstatix::wilcox_test(ErrorValue ~ ErrorType, paired=FALSE, exact=FALSE, p.adjust.method="bonferroni")
@@ -232,11 +254,15 @@ ggplot(long_average_session2_ssWalking_data, aes(x=taskname, y=ErrorValue, fill=
 
 #merge dataframes
 total_ssWalking_error = rbind(long_average_session1_ssWalking_data, long_average_session2_ssWalking_data)
+ggplot(total_ssWalking_error, aes(x=taskname, y=ErrorValue, fill=ErrorType)) + geom_bar(position=position_dodge(), stat = "summary", fun = "mean") + geom_errorbar(position=position_dodge(), stat="summary", fun.data="mean_se", fun.args = list(mult = 1.96)) + scale_x_discrete(name = "", limits=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), breaks=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), labels=c('Head Constrained Static', 'Head Constrained Moving', 'Body Constrained', 'Screen Stabilized Walking', 'World Stabilized Walking', 'Hallway')) + theme(axis.text.x = element_text(angle = 50, vjust = 1, hjust=1)) + ylab('Euclidean Error (degrees)') + scale_fill_discrete(name="Error Type", breaks=c('euclideanError', 'recalibratedEuclideanError'), labels=c('Device Calibration', 'Recalibration'))
 
 #Three-way ANOVA: task, error type, trial
 total_ssWalking_error %>% group_by(taskname, trial, ErrorType) %>% shapiro_test(ErrorValue) #fails test for normality, can't use normal ANOVA
 
 m_ssWalking = art(data = total_ssWalking_error, ErrorValue ~ taskname * trial * ErrorType + Error(id))
+anova(m_ssWalking)
+
+m_ssWalking = art(data = total_ssWalking_error, ErrorValue ~ taskname * ErrorType + Error(id))
 anova(m_ssWalking)
 
 ssWalking_error_posthoc <- total_ssWalking_error %>% group_by(taskname) %>% rstatix::wilcox_test(ErrorValue ~ ErrorType, paired=FALSE, exact=FALSE, p.adjust.method="bonferroni")
@@ -247,64 +273,6 @@ ssWalking_learning_effect_posthoc
 
 ssWalking_by_trial_error_posthoc <- total_ssWalking_error %>% group_by(taskname, trial) %>% rstatix::wilcox_test(ErrorValue ~ ErrorType, paired=FALSE, exact=FALSE, p.adjust.method="bonferroni")
 ssWalking_by_trial_error_posthoc
-
-
-
-#-----------------------------------------------------------------------------------------
-
-rm(list = ls())
-#average errors: session 1 recalibrated with wsBodyConstrained task
-average_session1_wsBodyConstrained_data <- read.csv("/Users/vivianross/Documents/School/Research/EyeTracking/HoloLensEyeTracking-DataAnalysis-New/Data/session1_recalibrated_wsBodyConstrained_average_error.csv", header = TRUE, fileEncoding = 'UTF-8-BOM')
-#average errors: session 2 recalibrated with wsBodyConstrained task
-average_session2_wsBodyConstrained_data <- read.csv("/Users/vivianross/Documents/School/Research/EyeTracking/HoloLensEyeTracking-DataAnalysis-New/Data/session2_recalibrated_wsBodyConstrained_average_error.csv", header = TRUE, fileEncoding = 'UTF-8-BOM')
-
-#add column to specify trial
-average_session1_wsBodyConstrained_data <- average_session1_wsBodyConstrained_data %>% add_column(trial = '1')
-average_session2_wsBodyConstrained_data <- average_session2_wsBodyConstrained_data %>% add_column(trial = '2')
-
-#turn variables into factors
-average_session1_wsBodyConstrained_data$taskname = factor(average_session1_wsBodyConstrained_data$taskname)
-average_session1_wsBodyConstrained_data$hololens = factor(average_session1_wsBodyConstrained_data$hololens)
-average_session1_wsBodyConstrained_data$trial = factor(average_session1_wsBodyConstrained_data$trial)
-average_session1_wsBodyConstrained_data$id = factor(average_session1_wsBodyConstrained_data$id)
-average_session2_wsBodyConstrained_data$taskname = factor(average_session2_wsBodyConstrained_data$taskname)
-average_session2_wsBodyConstrained_data$hololens = factor(average_session2_wsBodyConstrained_data$hololens)
-average_session2_wsBodyConstrained_data$trial = factor(average_session2_wsBodyConstrained_data$trial)
-average_session2_wsBodyConstrained_data$id = factor(average_session2_wsBodyConstrained_data$id)
-
-#split by recalibrated and uncalibrated Euclidean error
-long_average_session1_wsBodyConstrained_data <- average_session1_wsBodyConstrained_data |> pivot_longer(cols = c('euclideanError', 'recalibratedEuclideanError'), names_to = 'ErrorType', values_to = 'ErrorValue') 
-long_average_session2_wsBodyConstrained_data <- average_session2_wsBodyConstrained_data |> pivot_longer(cols = c('euclideanError', 'recalibratedEuclideanError'), names_to = 'ErrorType', values_to = 'ErrorValue')
-
-#turn error types into factors
-long_average_session1_wsBodyConstrained_data$ErrorType = factor(long_average_session1_wsBodyConstrained_data$ErrorType)
-long_average_session2_wsBodyConstrained_data$ErrorType = factor(long_average_session2_wsBodyConstrained_data$ErrorType)
-
-#plot calibrated and uncalibrated error separated by trial
-ggplot(long_average_session1_wsBodyConstrained_data, aes(x=taskname, y=ErrorValue, fill=ErrorType)) + geom_bar(position=position_dodge(), stat = "summary", fun = "mean") + geom_errorbar(position=position_dodge(), stat="summary", fun.data="mean_se", fun.args = list(mult = 1.96)) + scale_x_discrete(name = "", limits=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), breaks=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), labels=c('Calibration', 'Head Constrained', 'Body Constrained', 'Screen Stabilized Walking', 'World Stabilized Walking', 'Hallway')) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + ylab('Euclidean Error (degrees)') + scale_fill_discrete(name="Error Type", breaks=c('euclideanError', 'recalibratedEuclideanError'), labels=c('Uncalibrated', 'Recalibrated'))
-ggplot(long_average_session2_wsBodyConstrained_data, aes(x=taskname, y=ErrorValue, fill=ErrorType)) + geom_bar(position=position_dodge(), stat = "summary", fun = "mean") + geom_errorbar(position=position_dodge(), stat="summary", fun.data="mean_se", fun.args = list(mult = 1.96)) + scale_x_discrete(name = "", limits=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), breaks=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), labels=c('Calibration', 'Head Constrained', 'Body Constrained', 'Screen Stabilized Walking', 'World Stabilized Walking', 'Hallway')) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + ylab('Euclidean Error (degrees)') + scale_fill_discrete(name="Error Type", breaks=c('euclideanError', 'recalibratedEuclideanError'), labels=c('Uncalibrated', 'Recalibrated'))
-
-#merge dataframes
-total_wsBodyConstrained_error = rbind(long_average_session1_wsBodyConstrained_data, long_average_session2_wsBodyConstrained_data)
-
-#Three-way ANOVA: task, error type, trial
-total_wsBodyConstrained_error %>% group_by(taskname, trial, ErrorType) %>% shapiro_test(ErrorValue) #fails test for normality, can't use normal ANOVA
-
-m_wsBodyConstrained = art(data = total_wsBodyConstrained_error, ErrorValue ~ taskname * trial * ErrorType + Error(id))
-anova(m_wsBodyConstrained)
-
-wsBodyConstrained_error_posthoc <- total_wsBodyConstrained_error %>% group_by(taskname) %>% rstatix::wilcox_test(ErrorValue ~ ErrorType, paired=FALSE, exact=FALSE, p.adjust.method="bonferroni")
-wsBodyConstrained_error_posthoc
-
-wsBodyConstrained_learning_effect_posthoc <- total_wsBodyConstrained_error %>% group_by(taskname, ErrorType) %>% rstatix::wilcox_test(ErrorValue ~ trial, paired=FALSE, exact=FALSE, p.adjust.method="bonferroni")
-wsBodyConstrained_learning_effect_posthoc
-
-wsBodyConstrained_by_trial_error_posthoc <- total_wsBodyConstrained_error %>% group_by(taskname, trial) %>% rstatix::wilcox_test(ErrorValue ~ ErrorType, paired=FALSE, exact=FALSE, p.adjust.method="bonferroni")
-wsBodyConstrained_by_trial_error_posthoc
-
-
-
-
 
 #-----------------------------------------------------------------------------------------
 
@@ -342,11 +310,15 @@ ggplot(long_average_session2_wsWalking_data, aes(x=taskname, y=ErrorValue, fill=
 
 #merge dataframes
 total_wsWalking_error = rbind(long_average_session1_wsWalking_data, long_average_session2_wsWalking_data)
+ggplot(total_wsWalking_error, aes(x=taskname, y=ErrorValue, fill=ErrorType)) + geom_bar(position=position_dodge(), stat = "summary", fun = "mean") + geom_errorbar(position=position_dodge(), stat="summary", fun.data="mean_se", fun.args = list(mult = 1.96)) + scale_x_discrete(name = "", limits=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), breaks=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), labels=c('Head Constrained Static', 'Head Constrained Moving', 'Body Constrained', 'Screen Stabilized Walking', 'World Stabilized Walking', 'Hallway')) + theme(axis.text.x = element_text(angle = 50, vjust = 1, hjust=1)) + ylab('Euclidean Error (degrees)') + scale_fill_discrete(name="Error Type", breaks=c('euclideanError', 'recalibratedEuclideanError'), labels=c('Device Calibration', 'Recalibration'))
 
 #Three-way ANOVA: task, error type, trial
 total_wsWalking_error %>% group_by(taskname, trial, ErrorType) %>% shapiro_test(ErrorValue) #fails test for normality, can't use normal ANOVA
 
 m_wsWalking = art(data = total_wsWalking_error, ErrorValue ~ taskname * trial * ErrorType + Error(id))
+anova(m_wsWalking)
+
+m_wsWalking = art(data = total_wsWalking_error, ErrorValue ~ taskname * ErrorType + Error(id))
 anova(m_wsWalking)
 
 wsWalking_error_posthoc <- total_wsWalking_error %>% group_by(taskname) %>% rstatix::wilcox_test(ErrorValue ~ ErrorType, paired=FALSE, exact=FALSE, p.adjust.method="bonferroni")
@@ -396,11 +368,15 @@ ggplot(long_average_session2_hallway_data, aes(x=taskname, y=ErrorValue, fill=Er
 
 #merge dataframes
 total_hallway_error = rbind(long_average_session1_hallway_data, long_average_session2_hallway_data)
+ggplot(total_hallway_error, aes(x=taskname, y=ErrorValue, fill=ErrorType)) + geom_bar(position=position_dodge(), stat = "summary", fun = "mean") + geom_errorbar(position=position_dodge(), stat="summary", fun.data="mean_se", fun.args = list(mult = 1.96)) + scale_x_discrete(name = "", limits=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), breaks=c('calibration', 'ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), labels=c('Head Constrained Static', 'Head Constrained Moving', 'Body Constrained', 'Screen Stabilized Walking', 'World Stabilized Walking', 'Hallway')) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + ylab('Euclidean Error (degrees)') + scale_fill_discrete(name="Error Type", breaks=c('euclideanError', 'recalibratedEuclideanError'), labels=c('Device Calibration', 'Recalibration'))
 
 #Three-way ANOVA: task, error type, trial
 total_hallway_error %>% group_by(taskname, trial, ErrorType) %>% shapiro_test(ErrorValue) #fails test for normality, can't use normal ANOVA
 
 m_hallway = art(data = total_hallway_error, ErrorValue ~ taskname * trial * ErrorType + Error(id))
+anova(m_hallway)
+
+m_hallway = art(data = total_hallway_error, ErrorValue ~ taskname * ErrorType + Error(id))
 anova(m_hallway)
 
 hallway_error_posthoc <- total_hallway_error %>% group_by(taskname) %>% rstatix::wilcox_test(ErrorValue ~ ErrorType, paired=FALSE, exact=FALSE, p.adjust.method="bonferroni")
@@ -496,9 +472,30 @@ ggplot(session2_movement_data, aes(x=taskname, y=cosineError, fill=movement)) + 
 ggplot(session1_movement_data, aes(x=taskname, y=euclideanError, fill=movement)) + geom_bar(position=position_dodge(), stat = "summary", fun = "mean") + geom_errorbar(position=position_dodge(), stat="summary", fun.data="mean_se", fun.args = list(mult = 1.96)) + scale_x_discrete(name = "", limits=c('ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), breaks=c('ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), labels=c('Head Constrained', 'Body Constrained', 'Screen Stabilized Walking', 'World Stabilized Walking', 'Hallway')) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + ylab('Euclidean Error (degrees)') + scale_fill_discrete(name="")
 ggplot(session2_movement_data, aes(x=taskname, y=euclideanError, fill=movement)) + geom_bar(position=position_dodge(), stat = "summary", fun = "mean") + geom_errorbar(position=position_dodge(), stat="summary", fun.data="mean_se", fun.args = list(mult = 1.96)) + scale_x_discrete(name = "", limits=c('ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), breaks=c('ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), labels=c('Head Constrained', 'Body Constrained', 'Screen Stabilized Walking', 'World Stabilized Walking', 'Hallway')) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + ylab('Euclidean Error (degrees)') + scale_fill_discrete(name="")
 
+#Three-way ANOVA: task, trial, movement
+movement_error = rbind(session1_movement_data, session2_movement_data)
+ggplot(movement_error, aes(x=taskname, y=cosineError, fill=movement)) + geom_bar(position=position_dodge(), stat = "summary", fun = "mean") + geom_errorbar(position=position_dodge(), stat="summary", fun.data="mean_se", fun.args = list(mult = 1.96)) + scale_x_discrete(name = "", limits=c('ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), breaks=c('ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), labels=c('Head Constrained Moving', 'Body Constrained', 'Screen Stabilized Walking', 'World Stabilized Walking', 'Hallway')) + theme(axis.text.x = element_text(angle = 50, vjust = 1, hjust=1)) + ylab('Cosine Error (degrees)') + scale_fill_discrete(name="")
 
 
+movement_error %>% group_by(taskname, trial, movement) %>% shapiro_test(cosineError) #fails test for normality, can't use normal ANOVA
 
+m_movement = art(data = movement_error, cosineError ~ taskname * trial * movement + Error(id))
+anova(m_movement)
+
+movement_error_posthoc <- movement_error %>% group_by(taskname) %>% rstatix::wilcox_test(cosineError ~ movement, paired=FALSE, exact=FALSE, p.adjust.method="bonferroni")
+movement_error_posthoc
+
+movement_learning_effect_posthoc <- movement_error %>% group_by(taskname, movement) %>% rstatix::wilcox_test(cosineError ~ trial, paired=FALSE, exact=FALSE, p.adjust.method="bonferroni")
+movement_learning_effect_posthoc
+
+
+#plot graph with same format as Satyam's
+both_movement <- data.frame(movement_error)
+both_movement$movement = 'Both'
+
+graph_data <- rbind(movement_error, both_movement)
+ggplot(graph_data, aes(x=taskname, y=cosineError, fill=movement)) + geom_bar(position=position_dodge(), stat = "summary", fun = "mean") + geom_errorbar(position=position_dodge(), stat="summary", fun.data="mean_se", fun.args = list(mult = 1.96)) + scale_x_discrete(name = "", limits=c('ssHeadConstrained', 'wsBodyConstrained', 'wsWalking', 'ssWalking', 'hallway'), breaks=c('ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), labels=c('w1', 'w2', 's4', 'w3', 'Hallway')) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + ylab('Cosine Error (degrees)') + scale_fill_discrete(name="")
+ggplot(movement_error, aes(x=taskname, y=cosineError, fill=movement)) + geom_bar(position=position_dodge(), stat = "summary", fun = "mean") + geom_errorbar(position=position_dodge(), stat="summary", fun.data="mean_se", fun.args = list(mult = 1.96)) + scale_x_discrete(name = "", limits=c('ssHeadConstrained', 'wsBodyConstrained', 'wsWalking', 'ssWalking', 'hallway'), breaks=c('ssHeadConstrained', 'wsBodyConstrained', 'ssWalking', 'wsWalking', 'hallway'), labels=c('w1', 'w2', 's4', 'w3', 'Hallway')) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + ylab('Cosine Error (degrees)') + scale_fill_discrete(name="")
 
 
 ##########################################################################################
